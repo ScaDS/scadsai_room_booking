@@ -3,7 +3,7 @@
 
 ## Usage
 
-You can try the app running this terminal command:
+You can use the app by running this terminal command:
 
 ```commandline
 scadsai-room-booking
