@@ -54,10 +54,6 @@ def list_room_bookings_today(calendar, room):
 
     sorted_bookings = sorted(selected_room_bookings, key=lambda x: str(x))
 
-    print("Sorted bookings:")
-    for s in sorted_bookings:
-        print(s)
-
     return sorted_bookings
 
 
