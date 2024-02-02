@@ -29,8 +29,8 @@ After clicking on `Book!` you will see your booking in the list.
 You can install scadsai-room-booking using pip:
 
 ```commandline
-git clone https://github.com/scads/scadsai-room-booking
-cd scadsai-room-booking
+git clone https://github.com/scads/scadsai_room_booking
+cd scadsai_room_booking
 pip install -e .
 ```
 
