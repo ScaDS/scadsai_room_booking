@@ -92,8 +92,8 @@ def book_room(calendar, room, owner, description, start, end, debug=True):
     from ._config import unify_location
 
     room_str = unify_location(room)
-    start_str = start.strftime("%Y%m%dT%H%M%SZ")
-    end_str = end.strftime("%Y%m%dT%H%M%SZ")
+    start_str = start.strftime("%Y%m%dT%H%M%S")
+    end_str = end.strftime("%Y%m%dT%H%M%S")
     summary_escaped = description.replace(",", "\\,")
     summary_str = f"{room_str}, {summary_escaped} ({owner})"
 

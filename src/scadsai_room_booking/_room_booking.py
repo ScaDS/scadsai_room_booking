@@ -9,6 +9,7 @@ class RoomBooking():
         self.description = None
         self.start = None
         self.end = None
+        self.data = event_data
 
         # The text block provided
         text = event_data
