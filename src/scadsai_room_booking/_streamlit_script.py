@@ -71,9 +71,7 @@ def streamlit_app():
                     if room is None:
                         room = st.session_state.room
 
-                    print("Book?")
                     if owner is not None and len(owner) > 2:
-                        print("Book!")
                         book_room(calendar, room, owner, description, datetime.combine(datetime.today(), start_time), datetime.combine(datetime.today(), end_time), debug=False)
 
                 st.form_submit_button("Book!", on_click=do_booking)
