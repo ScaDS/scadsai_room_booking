@@ -69,7 +69,7 @@ def streamlit_app():
                     start_time = st.session_state.start_time
                     end_time = st.session_state.end_time
                     if room is None:
-                        roome = st.session_state.room
+                        room = st.session_state.room
 
                     print("Book?")
                     if owner is not None and len(owner) > 2:
