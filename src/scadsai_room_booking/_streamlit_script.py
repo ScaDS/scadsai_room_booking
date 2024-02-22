@@ -17,7 +17,8 @@ def main() -> None:
     runpy.run_module("streamlit", run_name="__main__")
 
 def list_bookings(calendar, room):
-    for booking in list_room_bookings_today(calendar, room):
+    to_list = list_room_bookings_today(calendar, room)
+    for booking in to_list:
         st.markdown(f"""
         #### {booking.start.strftime("%H:%M")} - {booking.end.strftime("%H:%M")} 
         ## {booking.description} 
@@ -25,6 +26,8 @@ def list_bookings(calendar, room):
 
         ---
         """)
+
+    return len(to_list)
 
 
 def book(room, calendar, start_time=None, end_time=None, owner=None, description=None):
@@ -36,8 +39,8 @@ def book(room, calendar, start_time=None, end_time=None, owner=None, description
         end_time = start_time + timedelta(hours=1)
     st.time_input("End time:", value=end_time, key='end_time')
 
-    owner = st.text_input("Your name (mandatory):", key='owner', value=owner)
-    description = st.text_input("Description:", key='description', value=description)
+    st.text_input("Your name (mandatory):", key='owner', value=owner)
+    st.text_input("Description:", key='description', value=description)
 
     def do_booking(room):
         owner = st.session_state.owner
@@ -56,14 +59,6 @@ def book(room, calendar, start_time=None, end_time=None, owner=None, description
 def start_listening(room, calendar):
     def book_room(owner:str, description:str, start_time:time, end_time:time):
         """Book a room for given person, meeting description and a certain time period."""
-        #from scadsai_room_booking._config import unify_location, list_all_rooms
-        #st.session_state.owner = owner
-        #room = unify_location(room)
-        #if room in list_all_rooms():
-        #    st.session_state.room = room
-        #st.session_state.description = description
-        #st.session_state.start_time = start_time
-        #st.session_state.end_time = end_time
         book(room=room, calendar=calendar, start_time=start_time, end_time=end_time, owner=owner, description=description)
 
         result = f"Booking was successfull for {owner} in room {room} from {start_time} to {end_time} with description {description}."
@@ -77,14 +72,8 @@ def start_listening(room, calendar):
     print("done listening")
 
 
-
-
-
-
 def streamlit_app():
-    import numpy as np
     from skimage.io import imread
-    import io
 
     # hide deploy button
     st.set_page_config(page_title="Room Booking", layout="wide")
@@ -105,7 +94,7 @@ def streamlit_app():
     calendar = get_calendar()
 
     room = None # "A03.41 Schladitzer See" # "All"
-
+    # "All" # None #
     if room is None:
         st.title("ScaDS.AI Room Booking")
         room = st.selectbox("Room:", ["Select"] + list_all_rooms(), key='room')
@@ -116,8 +105,7 @@ def streamlit_app():
 
         non_empty_rooms = []
         for r in list_all_rooms():
-            if len(list_room_bookings_today(calendar, r)) > 0:
-                non_empty_rooms.append(r)
+            non_empty_rooms.append(r)
 
         columns = st.columns([1] * len(non_empty_rooms))
 
@@ -125,11 +113,18 @@ def streamlit_app():
 
             with col:
                st.markdown(f"# {name}")
-               list_bookings(calendar, name)
+               if list_bookings(calendar, name) == 0:
+                   st.markdown("\n\nNo bookings today")
 
-               if st.button(f"Book " + name.split(" ")[0]):
-                   book(name, calendar)
+               short_name = name.split(" ")[0]
 
+               if st.button(f"Book {short_name}", use_container_width=True):
+                    book(name, calendar)
+
+               if st.button(f"Book {short_name} with voice", use_container_width=True):
+                   start_listening(name, calendar)
+               st.markdown(
+                   "Note: if you book a room using your voice, information will be sent to / stored on Google and/or OpenAI servers.")
 
     if room != "Select" and room != "All":
 
