@@ -1,5 +1,6 @@
 # ScaDS.AI Room Booking App
 
+Room booking made easy at ScaDS.AI in Leipzig.
 
 ## Usage
 
@@ -23,6 +24,10 @@ On the bottom you can click on the `Book` button to reserve the room for the nex
 After clicking on `Book!` you will see your booking in the list.
 
 ![img.png](docs/images/img3.png)
+
+> [!NOTE]
+> If you use the voice-recognition for the room booking, please note that information will be sent to and stored on 
+> Google and/or OpenAI servers.
 
 ## Installation
 

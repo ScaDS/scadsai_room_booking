@@ -8,7 +8,7 @@ import scadsai_room_booking
 from scadsai_room_booking._utilities import list_room_bookings_today, book_room
 from scadsai_room_booking._config import get_calendar, list_all_rooms
 
-from datetime import timedelta, datetime
+from datetime import timedelta, datetime, time
 from scadsai_room_booking._utilities import round_minutes_to_multiple_of_15
 
 def main() -> None:
@@ -17,7 +17,8 @@ def main() -> None:
     runpy.run_module("streamlit", run_name="__main__")
 
 def list_bookings(calendar, room):
-    for booking in list_room_bookings_today(calendar, room):
+    to_list = list_room_bookings_today(calendar, room)
+    for booking in to_list:
         st.markdown(f"""
         #### {booking.start.strftime("%H:%M")} - {booking.end.strftime("%H:%M")} 
         ## {booking.description} 
@@ -26,35 +27,53 @@ def list_bookings(calendar, room):
         ---
         """)
 
+    return len(to_list)
 
-def book(room, calendar):
-    with st.form(f"Book {room} for today", clear_on_submit=True):
-        now = round_minutes_to_multiple_of_15(datetime.now())
-        start_time = st.time_input("Start time:", value=now, key='start_time')
-        end_time = st.time_input("End time:", value=now + timedelta(hours=1), key='end_time')
-        owner = st.text_input("Your name (mandatory):", key='owner')
-        description = st.text_input("Description:", key='description')
 
-        def do_booking(room):
-            owner = st.session_state.owner
-            #room = st.session_state.room
-            description = st.session_state.description
-            start_time = st.session_state.start_time
-            end_time = st.session_state.end_time
-            if room is None:
-                room = st.session_state.room
+def book(room, calendar, start_time=None, end_time=None, owner=None, description=None):
+    if start_time is None:
+        start_time = round_minutes_to_multiple_of_15(datetime.now())
+    st.time_input("Start time:", value=start_time, key='start_time')
 
-            if owner is not None and len(owner) > 2:
-                book_room(calendar, room, owner, description, datetime.combine(datetime.today(), start_time),
-                          datetime.combine(datetime.today(), end_time), debug=False)
+    if end_time is None:
+        end_time = start_time + timedelta(hours=1)
+    st.time_input("End time:", value=end_time, key='end_time')
 
-        st.form_submit_button("Book!", on_click=partial(do_booking, room=room))
+    st.text_input("Your name (mandatory):", key='owner', value=owner)
+    st.text_input("Description:", key='description', value=description)
+
+    def do_booking(room):
+        owner = st.session_state.owner
+        description = st.session_state.description
+        start_time = st.session_state.start_time
+        end_time = st.session_state.end_time
+        if room is None:
+            room = st.session_state.room
+
+        if owner is not None and len(owner) > 2:
+            book_room(calendar, room, owner, description, datetime.combine(datetime.today(), start_time),
+                      datetime.combine(datetime.today(), end_time), debug=False)
+
+    st.button("Book!", on_click=partial(do_booking, room=room))
+
+def start_listening(room, calendar):
+    def book_room(owner:str, description:str, start_time:time, end_time:time):
+        """Book a room for given person, meeting description and a certain time period."""
+        book(room=room, calendar=calendar, start_time=start_time, end_time=end_time, owner=owner, description=description)
+
+        result = f"Booking was successfull for {owner} in room {room} from {start_time} to {end_time} with description {description}."
+        return result
+
+    from blablado import Assistant
+    assistant = Assistant()
+    assistant.register_tool(book_room)
+    print("init microphone")
+    assistant.listen()
+    print("done listening")
 
 
 def streamlit_app():
-    import numpy as np
     from skimage.io import imread
-    import io
 
     # hide deploy button
     st.set_page_config(page_title="Room Booking", layout="wide")
@@ -72,11 +91,10 @@ def streamlit_app():
 
     st.image(imread(os.path.join(os.path.dirname(scadsai_room_booking.__file__), "logo.png")), caption="", width=200)
 
-
     calendar = get_calendar()
 
-    room = "All" # "A03.41 Schladitzer See" # "All"
-
+    room = None # "A03.41 Schladitzer See" # "All"
+    # "All" # None #
     if room is None:
         st.title("ScaDS.AI Room Booking")
         room = st.selectbox("Room:", ["Select"] + list_all_rooms(), key='room')
@@ -87,8 +105,7 @@ def streamlit_app():
 
         non_empty_rooms = []
         for r in list_all_rooms():
-            if len(list_room_bookings_today(calendar, r)) > 0:
-                non_empty_rooms.append(r)
+            non_empty_rooms.append(r)
 
         columns = st.columns([1] * len(non_empty_rooms))
 
@@ -96,21 +113,33 @@ def streamlit_app():
 
             with col:
                st.markdown(f"# {name}")
-               list_bookings(calendar, name)
+               if list_bookings(calendar, name) == 0:
+                   st.markdown("\n\nNo bookings today")
 
-               if st.button(f"Book " + name.split(" ")[0]):
-                   book(name, calendar)
+               short_name = name.split(" ")[0]
 
+               if st.button(f"Book {short_name}", use_container_width=True):
+                    book(name, calendar)
+
+               if st.button(f"Book {short_name} with voice", use_container_width=True):
+                   start_listening(name, calendar)
+               st.markdown(
+                   "Note: if you book a room using your voice, information will be sent to / stored on Google and/or OpenAI servers.")
 
     if room != "Select" and room != "All":
 
         list_bookings(calendar, room)
 
-        if st.button("Book"):
-            book(room, calendar)
+        columns = st.columns([1,1])
 
+        with columns[0]:
+            if st.button("Book", use_container_width=True):
+                book(room, calendar)
 
-
+        with columns[1]:
+            if st.button("Book with voice", use_container_width=True):
+                start_listening(room, calendar)
+            st.markdown("Note: if you book a room using your voice, information will be sent to / stored on Google and/or OpenAI servers.")
 
 
 if __name__ == "__main__":
