@@ -144,6 +144,7 @@ def streamlit_app():
         with columns[1]:
             if st.button("Book with voice", use_container_width=True):
                 start_listening(room, calendar)
+            st.markdown("Note: if you book a room using your voice, information will be sent to / stored on Google and/or OpenAI servers.")
 
 
 if __name__ == "__main__":
