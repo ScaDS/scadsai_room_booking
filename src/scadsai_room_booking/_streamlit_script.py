@@ -121,10 +121,11 @@ def streamlit_app():
                if st.button(f"Book {short_name}", use_container_width=True):
                     book(name, calendar)
 
-               if st.button(f"Book {short_name} with voice", use_container_width=True):
-                   start_listening(name, calendar)
-               st.markdown(
-                   "Note: if you book a room using your voice, information will be sent to / stored on Google and/or OpenAI servers.")
+               if voice_booking_available():
+                   if st.button(f"Book {short_name} with voice", use_container_width=True):
+                       start_listening(name, calendar)
+                   st.markdown(
+                       "Note: if you book a room using your voice, information will be sent to / stored on Google and/or OpenAI servers.")
 
     if room != "Select" and room != "All":
 
@@ -136,11 +137,19 @@ def streamlit_app():
             if st.button("Book", use_container_width=True):
                 book(room, calendar)
 
-        with columns[1]:
-            if st.button("Book with voice", use_container_width=True):
-                start_listening(room, calendar)
-            st.markdown("Note: if you book a room using your voice, information will be sent to / stored on Google and/or OpenAI servers.")
+        if voice_booking_available():
+            with columns[1]:
+                if st.button("Book with voice", use_container_width=True):
+                    start_listening(room, calendar)
+                st.markdown("Note: if you book a room using your voice, information will be sent to / stored on Google and/or OpenAI servers.")
 
+
+def voice_booking_available():
+    try:
+        import blablado
+        return True
+    except ImportError:
+        return False
 
 if __name__ == "__main__":
     streamlit_app()

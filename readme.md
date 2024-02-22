@@ -44,6 +44,11 @@ You need to configure these environment variables:
 * `SCADSAI_ROOM_USERNAME`
 * `SCADSAI_ROOM_API_TOKEN`
 
+If you want to use your voice for the room booking as well, you need to create an OpenAI API Key and add it to your environment variables as explained on [this page](https://help.openai.com/en/articles/5112595-best-practices-for-api-key-safety) and install blablado like this:
+```
+pip install blablado
+```
+
 ## License
 
 Distributed under the terms of the [BSD-3] license,
